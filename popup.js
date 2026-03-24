@@ -2,10 +2,14 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const settings = await chrome.storage.sync.get({
     baseUrlMode: true,
+    domainMatchList: [],
+    exactMatchList: [],
     blocklist: []
   });
 
   document.getElementById('baseUrlMode').checked = settings.baseUrlMode;
+  document.getElementById('domainMatchList').value = settings.domainMatchList.join('\n');
+  document.getElementById('exactMatchList').value = settings.exactMatchList.join('\n');
   document.getElementById('blocklist').value = settings.blocklist.join('\n');
 });
 
@@ -15,19 +19,30 @@ document.getElementById('baseUrlMode').addEventListener('change', async (e) => {
   showSaved();
 });
 
-// Save blocklist on change (debounced)
+// Helper to parse textarea to list
+function parseList(text) {
+  return text
+    .split('\n')
+    .map(s => s.trim().toLowerCase())
+    .filter(s => s.length > 0);
+}
+
+// Save lists on change (debounced)
 let saveTimeout;
-document.getElementById('blocklist').addEventListener('input', (e) => {
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(async () => {
-    const blocklist = e.target.value
-      .split('\n')
-      .map(s => s.trim().toLowerCase())
-      .filter(s => s.length > 0);
-    await chrome.storage.sync.set({ blocklist });
-    showSaved();
-  }, 500);
-});
+function setupListSave(elementId, storageKey) {
+  document.getElementById(elementId).addEventListener('input', (e) => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+      const list = parseList(e.target.value);
+      await chrome.storage.sync.set({ [storageKey]: list });
+      showSaved();
+    }, 500);
+  });
+}
+
+setupListSave('domainMatchList', 'domainMatchList');
+setupListSave('exactMatchList', 'exactMatchList');
+setupListSave('blocklist', 'blocklist');
 
 function showSaved() {
   const indicator = document.getElementById('savedIndicator');

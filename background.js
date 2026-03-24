@@ -48,15 +48,20 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // Get settings
   const settings = await chrome.storage.sync.get({
     baseUrlMode: true,
+    domainMatchList: [],
+    exactMatchList: [],
     blocklist: []
   });
 
   const newDomain = getDomain(newUrl);
 
   // Check if this domain is blocklisted
-  if (isBlocklisted(newDomain, settings.blocklist)) {
+  if (isInList(newDomain, settings.blocklist)) {
     return;
   }
+
+  // Determine matching mode for this domain
+  const matchMode = getMatchMode(newDomain, settings);
 
   try {
     // Find existing tabs with matching URL
@@ -64,7 +69,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const existingTab = allTabs.find(t => {
       if (t.id === tabId) return false;
 
-      if (settings.baseUrlMode) {
+      if (matchMode === 'domain') {
         // Match by domain only
         return getDomain(t.url) === newDomain;
       } else {
@@ -74,7 +79,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     });
 
     if (existingTab) {
-      console.log(`Found matching tab. Switching to tab ${existingTab.id} and closing ${tabId}`);
+      console.log(`Found matching tab (${matchMode} mode). Switching to tab ${existingTab.id}`);
 
       // Switch to existing tab
       await chrome.tabs.update(existingTab.id, { active: true });
@@ -87,6 +92,36 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     console.error('Tab switcher error:', e);
   }
 });
+
+// Determine match mode for a domain
+function getMatchMode(domain, settings) {
+  // Per-site rules take priority over default
+  if (isInList(domain, settings.domainMatchList)) {
+    return 'domain';
+  }
+  if (isInList(domain, settings.exactMatchList)) {
+    return 'exact';
+  }
+  // Fall back to default
+  return settings.baseUrlMode ? 'domain' : 'exact';
+}
+
+// Check if domain matches any entry in a list
+function isInList(domain, list) {
+  if (!domain || !list.length) return false;
+  return list.some(entry => {
+    // Clean up entry - extract domain if full URL was entered
+    let pattern = entry.toLowerCase().trim();
+    pattern = pattern.replace(/^https?:\/\//, '');
+    pattern = pattern.replace(/\/.*$/, '');
+    pattern = pattern.replace(/^www\./, '');
+
+    // Match exact domain or subdomain
+    return domain === pattern ||
+           domain === 'www.' + pattern ||
+           domain.endsWith('.' + pattern);
+  });
+}
 
 // Extract domain from URL
 function getDomain(url) {
@@ -112,21 +147,4 @@ function normalizeUrl(url) {
   }
 }
 
-// Check if domain is in blocklist
-function isBlocklisted(domain, blocklist) {
-  if (!domain || !blocklist.length) return false;
-  return blocklist.some(entry => {
-    // Clean up entry - extract domain if full URL was entered
-    let blocked = entry.toLowerCase().trim();
-    blocked = blocked.replace(/^https?:\/\//, ''); // Remove protocol
-    blocked = blocked.replace(/\/.*$/, ''); // Remove path
-    blocked = blocked.replace(/^www\./, ''); // Remove www
-
-    // Match exact domain or subdomain
-    return domain === blocked ||
-           domain === 'www.' + blocked ||
-           domain.endsWith('.' + blocked);
-  });
-}
-
-console.log('Tab Switcher loaded - Press Cmd+Shift+O to bypass next tab');
+console.log('Tab Switcher loaded');
