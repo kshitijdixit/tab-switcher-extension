@@ -1,6 +1,6 @@
-// Listen for Alt+Click to bypass tab switching
+// Listen for Cmd+Alt+Click to bypass tab switching
 document.addEventListener('click', (e) => {
-  if (e.altKey) {
+  if (e.metaKey && e.altKey) {
     const link = e.target.closest('a');
     if (link && link.href) {
       // Tell background script to allow this URL
@@ -12,9 +12,9 @@ document.addEventListener('click', (e) => {
   }
 }, true);
 
-// Also handle middle-click with Alt
+// Also handle middle-click with Cmd+Alt
 document.addEventListener('auxclick', (e) => {
-  if (e.altKey && e.button === 1) {
+  if (e.metaKey && e.altKey && e.button === 1) {
     const link = e.target.closest('a');
     if (link && link.href) {
       chrome.runtime.sendMessage({

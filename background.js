@@ -116,4 +116,4 @@ function isBlocklisted(domain, blocklist) {
   });
 }
 
-console.log('Tab Switcher extension loaded (Alt+Click to force new tab)');
+console.log('Tab Switcher extension loaded (Cmd+Alt+Click to force new tab)');

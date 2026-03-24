@@ -7,7 +7,7 @@ A Chrome extension that switches to existing tabs instead of opening duplicates.
 - **Domain-based matching**: Matches tabs by base URL (domain) - `github.com/a` matches `github.com/b`
 - **Exact URL matching**: Optionally match only exact URLs
 - **Blocklist**: Disable the extension for specific websites
-- **Alt+Click bypass**: Hold Alt/Option and click to force open in new tab
+- **Cmd+Alt+Click bypass**: Hold Cmd+Alt (⌘+⌥) and click to force open in new tab
 - **Automatic tab switching**: Instantly switches to the existing tab
 - **Lightweight**: Minimal permissions, no tracking
 
