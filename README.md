@@ -1,13 +1,14 @@
 # Tab Switcher
 
-A Chrome extension that switches to existing tabs instead of opening duplicates. If you try to open a URL and a tab with the same domain is already open, it switches to that tab instead.
+A Chrome extension that switches to existing tabs instead of opening duplicates.
 
 ## Features
 
-- **Domain-based matching**: Matches tabs by base URL (domain), not exact URL
+- **Domain-based matching**: Matches tabs by base URL (domain) - `github.com/a` matches `github.com/b`
+- **Exact URL matching**: Optionally match only exact URLs
+- **Blocklist**: Disable the extension for specific websites
 - **Automatic tab switching**: Instantly switches to the existing tab
-- **Closes duplicates**: Automatically closes the new tab to keep your browser clean
-- **Lightweight**: No permissions beyond tab access
+- **Lightweight**: Minimal permissions, no tracking
 
 ## Installation
 
@@ -17,16 +18,34 @@ A Chrome extension that switches to existing tabs instead of opening duplicates.
 4. Click **Load unpacked**
 5. Select the extension folder
 
+## Settings
+
+Click the extension icon to access settings:
+
+- **Match by domain only**:
+  - ON (default): Any tab from the same domain matches
+  - OFF: Only exact URLs match
+
+- **Disabled websites**: Add domains where the extension shouldn't activate (one per line)
+
 ## How It Works
 
-When you open a new tab with a URL:
-1. The extension checks if any existing tab has the same domain
-2. If found, it switches to that tab and closes the new one
-3. If not found, the new tab opens normally
+1. You open a new tab with a URL
+2. Extension checks if a matching tab exists (by domain or exact URL)
+3. If found → switches to existing tab and closes the new one
+4. If not found → new tab opens normally
 
-## Example
+## Examples
 
-If you have `github.com/user/repo` open and try to open `github.com/another/repo`, the extension will switch to the existing GitHub tab instead of opening a new one.
+With domain matching ON:
+- Have `github.com/user/repo` open
+- Try to open `github.com/another/repo`
+- → Switches to existing GitHub tab
+
+With domain matching OFF:
+- Have `github.com/user/repo` open
+- Try to open `github.com/another/repo`
+- → Opens new tab (URLs don't match exactly)
 
 ## License
 

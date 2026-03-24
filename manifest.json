@@ -1,11 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Tab Switcher",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Switch to existing tabs instead of opening duplicates",
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Tab Switcher Settings"
+  },
   "background": {
     "service_worker": "background.js"
-  }}
+  }
+}
