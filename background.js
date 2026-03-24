@@ -1,3 +1,15 @@
+// URLs to bypass (opened with Alt+Click)
+const bypassUrls = new Set();
+
+// Listen for bypass messages from content script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'BYPASS_URL') {
+    bypassUrls.add(normalizeUrl(message.url));
+    // Clear after 5 seconds to prevent memory buildup
+    setTimeout(() => bypassUrls.delete(normalizeUrl(message.url)), 5000);
+  }
+});
+
 // Track tab URLs to detect duplicates
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // Only act when URL changes (not on every update)
@@ -10,6 +22,13 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       newUrl.startsWith('chrome://') ||
       newUrl.startsWith('chrome-extension://') ||
       newUrl === 'about:blank') {
+    return;
+  }
+
+  // Check if this URL should bypass (Alt+Click)
+  if (bypassUrls.has(normalizeUrl(newUrl))) {
+    bypassUrls.delete(normalizeUrl(newUrl));
+    console.log('Bypass: Alt+Click detected, allowing new tab');
     return;
   }
 
@@ -97,4 +116,4 @@ function isBlocklisted(domain, blocklist) {
   });
 }
 
-console.log('Tab Switcher extension loaded');
+console.log('Tab Switcher extension loaded (Alt+Click to force new tab)');

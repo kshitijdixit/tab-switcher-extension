@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Tab Switcher",
-  "version": "1.1",
-  "description": "Switch to existing tabs instead of opening duplicates",
+  "version": "1.2",
+  "description": "Switch to existing tabs instead of opening duplicates. Alt+Click to force new tab.",
   "permissions": [
     "tabs",
     "storage"
@@ -13,5 +13,12 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
 }

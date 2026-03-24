@@ -114,6 +114,24 @@
     .saved.show {
       opacity: 1;
     }
+    .tip {
+      margin-top: 16px;
+      padding: 12px;
+      background: #e3f2fd;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1565c0;
+    }
+    .tip strong {
+      color: #0d47a1;
+    }
+    kbd {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      border: 1px solid #90caf9;
+    }
   </style>
 </head>
 <body>
@@ -134,6 +152,10 @@
     <label>Disabled websites <span class="saved" id="savedIndicator">Saved!</span></label>
     <textarea id="blocklist" placeholder="google.com&#10;chromewebstore.google.com&#10;youtube.com"></textarea>
     <p>One domain per line (or paste full URLs). Extension won't activate for these sites.</p>
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> Hold <kbd>Alt/Option</kbd> while clicking a link to force open in new tab.
   </div>
 
   <script src="popup.js"></script>
