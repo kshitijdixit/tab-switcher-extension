@@ -1,12 +1,24 @@
-// URLs to bypass (opened with Alt+Click)
-const bypassUrls = new Set();
+// Bypass mode - when true, next tab won't be closed
+let bypassNext = false;
 
-// Listen for bypass messages from content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'BYPASS_URL') {
-    bypassUrls.add(normalizeUrl(message.url));
-    // Clear after 5 seconds to prevent memory buildup
-    setTimeout(() => bypassUrls.delete(normalizeUrl(message.url)), 5000);
+// Listen for keyboard shortcut (Cmd+Shift+O)
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'bypass-next') {
+    bypassNext = true;
+    console.log('Bypass mode ON - next tab will open normally');
+
+    // Show notification badge
+    chrome.action.setBadgeText({ text: 'ON' });
+    chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+
+    // Auto-disable after 10 seconds if not used
+    setTimeout(() => {
+      if (bypassNext) {
+        bypassNext = false;
+        chrome.action.setBadgeText({ text: '' });
+        console.log('Bypass mode expired');
+      }
+    }, 10000);
   }
 });
 
@@ -25,10 +37,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     return;
   }
 
-  // Check if this URL should bypass (Alt+Click)
-  if (bypassUrls.has(normalizeUrl(newUrl))) {
-    bypassUrls.delete(normalizeUrl(newUrl));
-    console.log('Bypass: Alt+Click detected, allowing new tab');
+  // Check if bypass mode is on
+  if (bypassNext) {
+    bypassNext = false;
+    chrome.action.setBadgeText({ text: '' });
+    console.log('Bypass used - tab opened normally');
     return;
   }
 
@@ -116,4 +129,4 @@ function isBlocklisted(domain, blocklist) {
   });
 }
 
-console.log('Tab Switcher extension loaded (Cmd+Alt+Click to force new tab)');
+console.log('Tab Switcher loaded - Press Cmd+Shift+O to bypass next tab');

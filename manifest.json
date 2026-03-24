@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Tab Switcher",
-  "version": "1.3",
-  "description": "Switch to existing tabs instead of opening duplicates. Cmd+Alt+Click to force new tab.",
+  "version": "1.4",
+  "description": "Switch to existing tabs instead of opening duplicates",
   "permissions": [
     "tabs",
     "storage"
@@ -14,11 +14,13 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_start"
+  "commands": {
+    "bypass-next": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "Open next link in new tab (bypass duplicate check)"
     }
-  ]
+  }
 }
