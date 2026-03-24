@@ -83,9 +83,17 @@ function normalizeUrl(url) {
 // Check if domain is in blocklist
 function isBlocklisted(domain, blocklist) {
   if (!domain || !blocklist.length) return false;
-  return blocklist.some(blocked => {
+  return blocklist.some(entry => {
+    // Clean up entry - extract domain if full URL was entered
+    let blocked = entry.toLowerCase().trim();
+    blocked = blocked.replace(/^https?:\/\//, ''); // Remove protocol
+    blocked = blocked.replace(/\/.*$/, ''); // Remove path
+    blocked = blocked.replace(/^www\./, ''); // Remove www
+
     // Match exact domain or subdomain
-    return domain === blocked || domain.endsWith('.' + blocked);
+    return domain === blocked ||
+           domain === 'www.' + blocked ||
+           domain.endsWith('.' + blocked);
   });
 }
 
