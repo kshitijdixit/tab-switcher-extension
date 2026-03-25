@@ -3,169 +3,463 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      width: 340px;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      color: #333;
-      margin: 0;
-    }
-    h1 {
-      font-size: 16px;
-      margin: 0 0 16px 0;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .section {
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .section:last-of-type { border-bottom: none; }
-    .section-title {
-      font-weight: 600;
+      width: 356px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-size: 13px;
-      color: #555;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: #1a1a2e;
+      background: #f4f5f7;
     }
-    .setting-row {
+
+    /* ── Status ── */
+    .status {
+      background: #fff;
+      padding: 12px 16px;
+      border-bottom: 1px solid #ebebef;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
     }
-    .setting-row label { font-weight: 500; }
-    .setting-desc {
-      margin: 0;
-      font-size: 12px;
-      color: #666;
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .toggle {
-      position: relative;
-      width: 44px;
-      height: 24px;
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: 0.2s;
-      border-radius: 24px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px; width: 18px;
-      left: 3px; bottom: 3px;
-      background-color: white;
-      transition: 0.2s;
+    .dot {
+      width: 8px; height: 8px;
       border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
     }
-    input:checked + .slider { background-color: #4285f4; }
-    input:checked + .slider:before { transform: translateX(20px); }
-    .list-section label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-    }
-    .list-section textarea {
-      width: 100%;
-      height: 60px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: monospace;
-      resize: vertical;
-    }
-    .list-section textarea:focus {
-      outline: none;
-      border-color: #4285f4;
-    }
-    .list-section p {
-      margin: 4px 0 0 0;
-      font-size: 11px;
-      color: #888;
-    }
-    .list-section + .list-section { margin-top: 12px; }
-    .saved {
-      color: #34a853;
-      font-size: 11px;
-      margin-left: 6px;
+    .status-title { font-size: 14px; font-weight: 600; }
+    .saved-pill {
+      font-size: 10px; font-weight: 600;
+      color: #10b981;
+      background: #ecfdf5;
+      padding: 2px 8px;
+      border-radius: 10px;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.15s;
     }
-    .saved.show { opacity: 1; }
-    .tip {
-      margin-top: 12px;
-      padding: 10px;
-      background: #e3f2fd;
-      border-radius: 8px;
+    .saved-pill.show { opacity: 1; }
+    .meta {
       font-size: 11px;
-      color: #1565c0;
+      color: #8b8fa3;
     }
-    .tip strong { color: #0d47a1; }
-    kbd {
-      background: white;
+    .meta:empty { display: none; }
+    .meta b { color: #1a1a2e; font-weight: 600; }
+
+    /* ── Recommended bar ── */
+    .rec-bar {
+      margin: 8px 8px 0;
+      padding: 8px 12px;
+      background: #f0f4ff;
+      border: 1px solid #dbe4ff;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rec-bar-text { font-size: 12px; color: #4263eb; font-weight: 500; }
+    .rec-bar-btn {
+      font-size: 11px; font-weight: 600;
+      color: #4263eb;
+      background: #fff;
+      border: 1px solid #dbe4ff;
+      padding: 3px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .rec-bar-btn:hover { background: #eef2ff; }
+    .rec-bar.hidden { display: none; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      margin: 8px 8px 0;
+      border-radius: 10px;
+      border: 1px solid #ebebef;
+    }
+    .card-head {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8b8fa3;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 10px 14px 2px;
+    }
+
+    /* ── Row ── */
+    .row {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      gap: 10px;
+      min-height: 44px;
+      transition: background 0.1s;
+    }
+    .row:hover { background: #fafbfc; }
+    .row + .row { border-top: 1px solid #f4f5f7; }
+    .row-info { flex: 1; min-width: 0; }
+    .row-label {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.3;
+    }
+    .pill {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
       padding: 1px 5px;
       border-radius: 3px;
-      font-family: monospace;
-      font-size: 10px;
-      border: 1px solid #90caf9;
     }
-    .color-domain { color: #1565c0; }
-    .color-exact { color: #7b1fa2; }
+    .pill-rec { color: #4263eb; background: #eef2ff; }
+    .row-desc {
+      font-size: 11px;
+      color: #8b8fa3;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+    .row-ex {
+      font-size: 10.5px;
+      color: #b0b3c6;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      margin-top: 2px;
+    }
+    /* flash on change */
+    .row.flash { background: #f0f4ff; }
+
+    /* ── Toggle ── */
+    .tgl { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .tgl input { position: absolute; opacity: 0; pointer-events: none; }
+    .tk {
+      position: absolute; inset: 0;
+      background: #d4d6e0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .tk::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.15s;
+    }
+    input:checked + .tk { background: #4263eb; }
+    input:checked + .tk::after { transform: translateX(16px); }
+
+    /* ── Limit: radio style ── */
+    .limit-opts {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-shrink: 0;
+      border: 1px solid #ebebef;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .limit-opt {
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #8b8fa3;
+      background: #fafbfc;
+      border: none;
+      transition: all 0.1s;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .limit-opt + .limit-opt { border-left: 1px solid #ebebef; }
+    .limit-opt.active {
+      background: #4263eb;
+      color: #fff;
+    }
+    .limit-custom {
+      width: 36px;
+      padding: 4px 2px;
+      border: none;
+      border-left: 1px solid #ebebef;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a1a2e;
+      background: #fafbfc;
+      outline: none;
+    }
+    .limit-custom:focus { background: #fff; }
+    .limit-custom.active {
+      background: #eef2ff;
+      color: #4263eb;
+    }
+
+    /* ── Expandable ── */
+    .ex-head {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      min-height: 42px;
+      transition: background 0.1s;
+    }
+    .ex + .ex .ex-head { border-top: 1px solid #f4f5f7; }
+    .ex-head:hover { background: #fafbfc; }
+    .ex-left { flex: 1; display: flex; align-items: center; gap: 6px; }
+    .ex-name { font-size: 13px; font-weight: 500; }
+    .ex-n {
+      font-size: 10px; font-weight: 600;
+      color: #8b8fa3; background: #f0f1f5;
+      padding: 1px 6px; border-radius: 8px;
+    }
+    .ex-n:empty { display: none; }
+    .ex-arr {
+      width: 16px; height: 16px; color: #b0b3c6;
+      transition: transform 0.15s; flex-shrink: 0;
+    }
+    .ex.open .ex-arr { transform: rotate(180deg); }
+    .ex-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.2s ease;
+    }
+    .ex.open .ex-body { max-height: 160px; }
+    .ex-inner { padding: 0 14px 10px; }
+    .ex-inner textarea {
+      width: 100%;
+      height: 50px;
+      padding: 6px 8px;
+      border: 1px solid #ebebef;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      color: #1a1a2e;
+      background: #fafbfc;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .ex-inner textarea:focus { outline: none; border-color: #4263eb; background: #fff; }
+    .ex-hint { font-size: 10px; color: #b0b3c6; margin-top: 3px; }
+
+    /* ── Action ── */
+    .act { padding: 10px 8px 2px; }
+    .scan-btn {
+      width: 100%;
+      padding: 9px 14px;
+      border: 1px solid #ebebef;
+      border-radius: 9px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a2e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.1s;
+    }
+    .scan-btn:hover { background: #fafbfc; border-color: #d4d6e0; }
+    .scan-btn:disabled { opacity: 0.45; cursor: default; }
+    .scan-btn .n { color: #e03131; font-weight: 700; }
+    .scan-btn svg { width: 14px; height: 14px; color: #8b8fa3; }
+
+    /* ── Undo ── */
+    .undo {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin: 6px 8px 0;
+      padding: 8px 12px;
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      font-size: 12px; color: #166534;
+    }
+    .undo.show { display: flex; }
+    .undo-btn {
+      background: none; border: none;
+      color: #4263eb; font-size: 12px; font-weight: 600;
+      cursor: pointer; padding: 0;
+    }
+    .undo-btn:hover { text-decoration: underline; }
+
+    /* ── Footer ── */
+    .foot {
+      padding: 8px 8px 12px;
+      display: flex; gap: 12px; justify-content: center;
+    }
+    .sc { font-size: 10px; color: #b0b3c6; display: flex; align-items: center; gap: 3px; }
+    kbd {
+      font-family: inherit; font-size: 10px;
+      padding: 1px 4px; border: 1px solid #ebebef;
+      border-radius: 3px; background: #fff; color: #8b8fa3;
+    }
   </style>
 </head>
 <body>
-  <h1>Tab Switcher Settings <span class="saved" id="savedIndicator">Saved!</span></h1>
 
-  <div class="section">
-    <div class="section-title">Default Matching</div>
-    <div class="setting-row">
-      <label>Match by domain only</label>
-      <label class="toggle">
-        <input type="checkbox" id="baseUrlMode" checked>
-        <span class="slider"></span>
-      </label>
+  <!-- Status -->
+  <div class="status">
+    <div class="status-left">
+      <div class="dot"></div>
+      <div class="status-title">Tab Switcher</div>
     </div>
-    <p class="setting-desc">ON: github.com/* matches any GitHub tab<br>OFF: Only exact URLs match</p>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Per-Site Rules</div>
-
-    <div class="list-section">
-      <label class="color-domain">🌐 Match by domain only</label>
-      <textarea id="domainMatchList" placeholder="github.com&#10;stackoverflow.com"></textarea>
-      <p>These sites will always match by domain, ignoring exact path</p>
-    </div>
-
-    <div class="list-section">
-      <label class="color-exact">🔗 Match by exact URL only</label>
-      <textarea id="exactMatchList" placeholder="docs.google.com&#10;notion.so"></textarea>
-      <p>These sites will only match if the full URL is identical</p>
+    <div class="status-right">
+      <span class="saved-pill" id="savedIndicator">Saved</span>
+      <span class="meta" id="lastActivity"></span>
+      <span class="meta"><b id="badgeCount">0</b> today</span>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Disabled Sites</div>
-    <div class="list-section">
-      <label>🚫 Extension disabled</label>
-      <textarea id="blocklist" placeholder="google.com&#10;youtube.com"></textarea>
-      <p>Extension won't activate for these sites at all</p>
+  <!-- Recommended -->
+  <div class="rec-bar" id="recBar">
+    <span class="rec-bar-text">Not using recommended settings</span>
+    <button class="rec-bar-btn" id="recBtn">Apply defaults</button>
+  </div>
+
+  <!-- Detection -->
+  <div class="card">
+    <div class="card-head">Detection</div>
+
+    <div class="row" id="row-baseUrlMode">
+      <div class="row-info">
+        <div class="row-label">Match by domain <span class="pill pill-rec">REC</span></div>
+        <div class="row-desc">Any path on the same site counts as duplicate</div>
+        <div class="row-ex">github.com/a &rarr; github.com/b</div>
+      </div>
+      <label class="tgl"><input type="checkbox" id="baseUrlMode" checked><span class="tk"></span></label>
+    </div>
+
+    <div class="row" id="row-ignoreQueryParams">
+      <div class="row-info">
+        <div class="row-label">Ignore tracking params</div>
+        <div class="row-desc">Strips ?ref=, ?utm_source= before comparing</div>
+        <div class="row-ex">page.com?ref=a &rarr; page.com?ref=b</div>
+      </div>
+      <label class="tgl"><input type="checkbox" id="ignoreQueryParams"><span class="tk"></span></label>
+    </div>
+
+    <div class="row" id="row-ignoreHash">
+      <div class="row-info">
+        <div class="row-label">Ignore URL fragments</div>
+        <div class="row-desc">Treats anchor links as the same page</div>
+        <div class="row-ex">docs.com#intro &rarr; docs.com#api</div>
+      </div>
+      <label class="tgl"><input type="checkbox" id="ignoreHash" checked><span class="tk"></span></label>
     </div>
   </div>
 
-  <div class="tip">
-    <strong>Tip:</strong> Press <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>O</kbd> to bypass and force open a new tab.
+  <!-- Protection -->
+  <div class="card">
+    <div class="card-head">Protection</div>
+
+    <div class="row" id="row-pinnedTabProtection">
+      <div class="row-info">
+        <div class="row-label">Keep pinned tabs safe <span class="pill pill-rec">REC</span></div>
+        <div class="row-desc">Pinned tabs are never closed or replaced</div>
+      </div>
+      <label class="tgl"><input type="checkbox" id="pinnedTabProtection" checked><span class="tk"></span></label>
+    </div>
+
+    <div class="row" id="row-showNotifications">
+      <div class="row-info">
+        <div class="row-label">Notify when caught</div>
+        <div class="row-desc">Desktop alert each time a duplicate is closed</div>
+      </div>
+      <label class="tgl"><input type="checkbox" id="showNotifications" checked><span class="tk"></span></label>
+    </div>
+
+    <div class="row" id="row-limit">
+      <div class="row-info">
+        <div class="row-label">Limit tabs per domain</div>
+        <div class="row-desc">Closes the oldest tab from that domain</div>
+      </div>
+      <div class="limit-opts" id="limitOpts">
+        <button class="limit-opt active" data-val="0">Off</button>
+        <button class="limit-opt" data-val="3">3</button>
+        <button class="limit-opt" data-val="5">5</button>
+        <input type="number" class="limit-custom" id="limitCustom" min="1" max="50" placeholder="N" title="Custom limit">
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Rules -->
+  <div class="card">
+    <div class="card-head">Site Rules</div>
+
+    <div class="ex" id="sec-domain">
+      <div class="ex-head" data-target="sec-domain">
+        <div class="ex-left">
+          <span class="ex-name">Always match by domain</span>
+          <span class="ex-n" id="domainCount"></span>
+        </div>
+        <svg class="ex-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ex-body"><div class="ex-inner">
+        <textarea id="domainMatchList" placeholder="github.com&#10;stackoverflow.com"></textarea>
+        <div class="ex-hint">Override: always match by domain. One per line.</div>
+      </div></div>
+    </div>
+
+    <div class="ex" id="sec-exact">
+      <div class="ex-head" data-target="sec-exact">
+        <div class="ex-left">
+          <span class="ex-name">Always match exact URL</span>
+          <span class="ex-n" id="exactCount"></span>
+        </div>
+        <svg class="ex-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ex-body"><div class="ex-inner">
+        <textarea id="exactMatchList" placeholder="docs.google.com&#10;notion.so"></textarea>
+        <div class="ex-hint">Override: only match when URLs are identical. One per line.</div>
+      </div></div>
+    </div>
+
+    <div class="ex" id="sec-block">
+      <div class="ex-head" data-target="sec-block">
+        <div class="ex-left">
+          <span class="ex-name">Disabled sites</span>
+          <span class="ex-n" id="blockCount"></span>
+        </div>
+        <svg class="ex-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ex-body"><div class="ex-inner">
+        <textarea id="blocklist" placeholder="google.com&#10;youtube.com"></textarea>
+        <div class="ex-hint">Extension completely off on these. One per line.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="act">
+    <button class="scan-btn" id="scanBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span id="scanLabel">Checking...</span>
+    </button>
+  </div>
+
+  <div class="undo" id="undoBar">
+    <span id="undoMsg"></span>
+    <button class="undo-btn" id="undoBtn">Undo</button>
+  </div>
+
+  <div class="foot">
+    <span class="sc"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>D</kbd> scan</span>
+    <span class="sc"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>O</kbd> bypass</span>
   </div>
 
   <script src="popup.js"></script>
