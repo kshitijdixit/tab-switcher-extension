@@ -87,15 +87,20 @@ async function refreshScanCount() {
 
     const sorted = [...allTabs].sort((a, b) => a.id - b.id);
     for (const tab of sorted) {
-      if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url === 'about:blank') continue;
+      if (!tab.url || tab.url === 'about:blank' || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('data:') || tab.url.startsWith('blob:')) continue;
       if (settings.pinnedTabProtection && tab.pinned) continue;
 
       const domain = getDomain(tab.url);
       if (isInList(domain, settings.blocklist)) continue;
 
-      const mode = isInList(domain, settings.domainMatchList) ? 'domain'
-        : isInList(domain, settings.exactMatchList) ? 'exact'
-        : settings.baseUrlMode ? 'domain' : 'exact';
+      // Must match background.js getMatchMode logic:
+      // Per-site lists only override when they DIFFER from the global mode
+      let mode;
+      if (settings.baseUrlMode) {
+        mode = isInList(domain, settings.exactMatchList) ? 'exact' : 'domain';
+      } else {
+        mode = isInList(domain, settings.domainMatchList) ? 'domain' : 'exact';
+      }
 
       const key = mode === 'domain' ? domain : normalizeUrl(tab.url, settings);
       if (!key) continue;
@@ -136,7 +141,7 @@ function normalizeUrl(url, settings) {
 }
 
 function isInList(domain, list) {
-  if (!domain || !list.length) return false;
+  if (!domain || !list || !list.length) return false;
   return list.some(entry => {
     let p = entry.toLowerCase().trim()
       .replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
@@ -267,10 +272,20 @@ function hideUndo() {
 }
 
 document.getElementById('undoBtn').addEventListener('click', async () => {
-  document.getElementById('undoBtn').textContent = '...';
-  try { await chrome.runtime.sendMessage({ action: 'undoClose' }); } catch {}
-  hideUndo();
-  document.getElementById('undoBtn').textContent = 'Undo';
+  const btn = document.getElementById('undoBtn');
+  btn.textContent = '...';
+  try {
+    const r = await chrome.runtime.sendMessage({ action: 'undoClose' });
+    if (r?.reopened > 0) {
+      document.getElementById('undoMsg').textContent = 'Reopened ' + r.reopened + ' tab' + (r.reopened > 1 ? 's' : '');
+      setTimeout(hideUndo, 1500);
+    } else {
+      hideUndo();
+    }
+  } catch {
+    hideUndo();
+  }
+  btn.textContent = 'Undo';
   refreshScanCount();
 });
 

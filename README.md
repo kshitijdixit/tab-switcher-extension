@@ -4,6 +4,12 @@ A Chrome extension that automatically switches to existing tabs instead of openi
 
 ## Features
 
+### Tab Search (Omnibox)
+- Type **`ts`** + **space** in the address bar, then start typing
+- Searches all open tabs by title and URL
+- Select a result to instantly switch to that tab
+- No new tab opened — just switches to the existing one
+
 ### Detection
 - **Domain matching** — `github.com/a` and `github.com/b` count as the same tab
 - **Exact URL matching** — Optionally match only identical URLs
@@ -14,12 +20,11 @@ A Chrome extension that automatically switches to existing tabs instead of openi
 ### Protection
 - **Pinned tab protection** — Pinned tabs are never closed or replaced
 - **Tab limit per domain** — Cap how many tabs one site can have (closes oldest)
-- **Notifications** — Desktop alert when a duplicate is caught
-- **Bypass mode** — Press `Ctrl+Shift+O` to let the next tab open normally
+- **Notifications** — Desktop alert when a duplicate is caught (can be toggled off)
+- **Bypass mode** — Press `Ctrl+Shift+O` to let the next tab open normally (10s timeout)
 
 ### Actions
-- **Close all duplicates** — One-click scan to find and close all duplicate tabs
-- **Undo** — Reopen tabs after a bulk close
+- **Close all duplicates** — One-click scan with live count and undo
 - **Keyboard shortcut** — `Alt+Shift+D` to scan duplicates instantly
 - **Daily counter** — Badge shows how many duplicates caught today
 
@@ -43,6 +48,18 @@ A Chrome extension that automatically switches to existing tabs instead of openi
 3. If found — switches to the existing tab and closes the new one
 4. If not found — new tab opens normally
 
+## Tab Search
+
+Type `ts` then press **space** in Chrome's address bar:
+
+```
+ts github       →  shows all open GitHub tabs
+ts my project   →  matches tab titles containing "my project"
+ts youtube      →  shows all open YouTube tabs
+```
+
+Select a suggestion to switch to that tab instantly.
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
@@ -50,13 +67,15 @@ A Chrome extension that automatically switches to existing tabs instead of openi
 | `Alt+Shift+D` | Scan and close all duplicate tabs |
 | `Ctrl+Shift+O` | Bypass — let the next tab open normally (10s timeout) |
 
+Shortcuts can be customized at `chrome://extensions/shortcuts`.
+
 ## Settings
 
 Click the extension icon to open the settings popup:
 
-- **Detection** — Configure how duplicates are identified
-- **Protection** — Control what gets protected and notifications
-- **Site Rules** — Per-site overrides and blocklist
+- **Matching Rules** — Configure how duplicates are identified
+- **Behavior** — Notifications, pinned tab protection, tab limits
+- **Advanced Rules** — Per-site overrides and blocklist
 - **Recommended defaults** — One-click reset to optimal settings
 
 ## License

@@ -11,20 +11,33 @@ const DEFAULTS = {
   maxTabsPerDomain: 0 // 0 = unlimited
 };
 
-// ── Bypass mode ──
-let bypassNext = false;
+// ── Bypass mode (persisted via storage + alarm to survive SW restarts) ──
+async function isBypassActive() {
+  const { bypassUntil = 0 } = await chrome.storage.local.get({ bypassUntil: 0 });
+  return Date.now() < bypassUntil;
+}
+
+async function activateBypass() {
+  await chrome.storage.local.set({ bypassUntil: Date.now() + 10000 });
+  chrome.action.setBadgeText({ text: 'ON' });
+  chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+  chrome.alarms.create('bypass-expire', { delayInMinutes: 10 / 60 });
+}
+
+async function clearBypass() {
+  await chrome.storage.local.set({ bypassUntil: 0 });
+  updateBadge();
+}
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === 'bypass-expire') {
+    if (!(await isBypassActive())) clearBypass();
+  }
+});
 
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'bypass-next') {
-    bypassNext = true;
-    chrome.action.setBadgeText({ text: 'ON' });
-    chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
-    setTimeout(() => {
-      if (bypassNext) {
-        bypassNext = false;
-        updateBadge();
-      }
-    }, 10000);
+    await activateBypass();
   }
   if (command === 'scan-duplicates') {
     await scanAndCloseDuplicates();
@@ -96,7 +109,7 @@ function normalizeUrl(url, settings) {
 }
 
 function isInList(domain, list) {
-  if (!domain || !list.length) return false;
+  if (!domain || !list || !list.length) return false;
   return list.some(entry => {
     let p = entry.toLowerCase().trim()
       .replace(/^https?:\/\//, '')
@@ -107,9 +120,15 @@ function isInList(domain, list) {
 }
 
 function getMatchMode(domain, settings) {
-  if (isInList(domain, settings.domainMatchList)) return 'domain';
-  if (isInList(domain, settings.exactMatchList)) return 'exact';
-  return settings.baseUrlMode ? 'domain' : 'exact';
+  if (settings.baseUrlMode) {
+    // Global = domain. Only exactMatchList can override to exact.
+    if (isInList(domain, settings.exactMatchList)) return 'exact';
+    return 'domain';
+  } else {
+    // Global = exact. Only domainMatchList can override to domain.
+    if (isInList(domain, settings.domainMatchList)) return 'domain';
+    return 'exact';
+  }
 }
 
 function getTabKey(tab, settings) {
@@ -139,9 +158,8 @@ function notifyDuplicate(domain) {
 async function handleDuplicateCheck(tabId, newUrl) {
   if (!newUrl || newUrl.startsWith('chrome://') || newUrl.startsWith('chrome-extension://') || newUrl === 'about:blank') return;
 
-  if (bypassNext) {
-    bypassNext = false;
-    updateBadge();
+  if (await isBypassActive()) {
+    await clearBypass();
     return;
   }
 
@@ -258,4 +276,79 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+// ── Omnibox: type "ts <query>" in address bar to find open tabs ──
+chrome.omnibox.onInputStarted.addListener(() => {
+  chrome.omnibox.setDefaultSuggestion({
+    description: 'Search open tabs — type to filter'
+  });
+});
+
+chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
+  const query = text.toLowerCase().trim();
+  if (!query) {
+    chrome.omnibox.setDefaultSuggestion({
+      description: 'Search open tabs — type to filter'
+    });
+    return;
+  }
+
+  const allTabs = await chrome.tabs.query({});
+  const matches = allTabs.filter(t => {
+    if (!t.url || t.url.startsWith('chrome://') || t.url.startsWith('chrome-extension://')) return false;
+    const title = (t.title || '').toLowerCase();
+    const url = t.url.toLowerCase();
+    return title.includes(query) || url.includes(query);
+  });
+
+  if (matches.length > 0) {
+    chrome.omnibox.setDefaultSuggestion({
+      description: `Switch to: ${escapeXml(matches[0].title || matches[0].url)}`
+    });
+  } else {
+    chrome.omnibox.setDefaultSuggestion({
+      description: 'No matching open tabs found'
+    });
+  }
+
+  // Show up to 5 additional suggestions (omnibox skips index 0 as default)
+  const suggestions = matches.slice(1, 6).map(t => ({
+    content: t.url,
+    description: `${escapeXml(truncate(t.title, 50))} — <url>${escapeXml(truncate(t.url, 60))}</url>`
+  }));
+
+  suggest(suggestions);
+});
+
+chrome.omnibox.onInputEntered.addListener(async (text, disposition) => {
+  // Find the tab matching the entered text (could be a URL from suggestion or typed query)
+  const allTabs = await chrome.tabs.query({});
+  const query = text.toLowerCase().trim();
+
+  // First try exact URL match (user selected a suggestion)
+  let target = allTabs.find(t => t.url === text);
+
+  // Otherwise fuzzy match the typed query
+  if (!target) {
+    target = allTabs.find(t => {
+      if (!t.url) return false;
+      const title = (t.title || '').toLowerCase();
+      const url = t.url.toLowerCase();
+      return title.includes(query) || url.includes(query);
+    });
+  }
+
+  if (target) {
+    await chrome.tabs.update(target.id, { active: true });
+    await chrome.windows.update(target.windowId, { focused: true });
+  }
+});
+
+function escapeXml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function truncate(str, len) {
+  return str && str.length > len ? str.substring(0, len) + '...' : (str || '');
+}
 
