@@ -6,7 +6,8 @@
   "permissions": [
     "tabs",
     "storage",
-    "notifications"
+    "notifications",
+    "alarms"
   ],
   "icons": {
     "128": "icon-128.png"
@@ -18,6 +19,9 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "omnibox": {
+    "keyword": "ts"
   },
   "commands": {
     "bypass-next": {
